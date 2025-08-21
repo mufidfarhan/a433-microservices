@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+  item-db:
+    # Pakai image resmi MongoDB versi 3 dari Docker Hub.
+    image: mongo:3 
+    container_name: item-db
+
+    # Mount volume bernama 'app-db' ke path data Mongo agar data persisten.
+    volumes:
+      - app-db:/data/db
+
+    # Selalu restart jika container berhenti (crash/exit)
+    restart: always
+
+
+  item-app:
+    # Image aplikasi dari GitHub Container Registry (GHCR).
+    image: ghcr.io/mufidfarhan/item-app:v1
+
+    # Port mapping: host:container → akses dari host via http://localhost:80, menerus ke port 8080 di container.
+    ports:
+      - "80:8080"
+    environment:
+      NODE_ENV: production # Jalankan aplikasi dalam mode produksi.
+      DB_HOST: item-db # Host database menunjuk ke nama service 'item-db' (DNS internal jaringan Compose).
+    
+    # Start 'item-db' lebih dulu.
+    depends_on:
+      - item-db
+
+    # Selalu restart jika container berhenti (crash/exit)
+    restart: always
+      
+
+volumes:
+  app-db:
